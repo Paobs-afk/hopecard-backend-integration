@@ -74,6 +74,14 @@ export default function HopecardSignUp() {
         throw new Error(signupData.error || 'Signup failed');
       }
 
+      // Check if profile creation failed
+      if (!signupData.profileCreated && signupData.warning) {
+        console.error('Profile creation warning:', signupData.warning);
+        setErrorMessage(`Warning: ${signupData.warning}`);
+        // Don't redirect - let user see the error
+        return;
+      }
+
       // Step 2: Upload the ID file after account is created
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       const file = fileInput?.files?.[0];

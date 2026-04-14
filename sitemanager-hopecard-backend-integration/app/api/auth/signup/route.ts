@@ -104,11 +104,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Even if profile creation fails, return success for user creation
-    // The profile can be retried separately
+    // Return appropriate response based on profile creation
     if (!profileCreated) {
-      console.warn(
-        `Profile creation failed but user was created. Error: ${profileError?.message || 'Unknown error'}`
+      const errorMsg = profileError?.message || 'Unknown error';
+      const errorDetails = JSON.stringify(profileError);
+      console.error(
+        `Profile creation failed but user was created. Error: ${errorMsg}. Full error: ${errorDetails}`
+      );
+
+      // Return 200 but with warning so frontend knows to alert user
+      return NextResponse.json(
+        {
+          success: true,
+          user: authData.user,
+          profileCreated: false,
+          warning: `Profile creation failed: ${errorMsg}. Please contact support.`,
+        },
+        { status: 200 }
       );
     }
 
@@ -116,6 +128,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         user: authData.user,
+        profileCreated: true,
         message: 'Donor profile created successfully',
       },
       { status: 200 }
