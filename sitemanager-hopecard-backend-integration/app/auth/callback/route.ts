@@ -23,14 +23,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=auth', requestUrl.origin));
     }
 
-    // Get the user's email from the session
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    // Successful email confirmation - redirect to application review page
-    const email = user?.email || '';
-    return NextResponse.redirect(
-      new URL(`/application-review?email=${encodeURIComponent(email)}`, requestUrl.origin)
-    );
+    // Successful email confirmation - redirect to login
+    return NextResponse.redirect(new URL('/login', requestUrl.origin));
   }
 
   // No code provided - redirect to login

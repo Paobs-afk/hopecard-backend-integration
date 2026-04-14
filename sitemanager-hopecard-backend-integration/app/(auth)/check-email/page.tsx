@@ -97,22 +97,19 @@ function CheckEmailForm() {
               <li style={{ marginBottom: "0.5rem" }}>
                 Check your email inbox for a confirmation link from Hopecard
               </li>
-              <li style={{ marginBottom: "0.5rem" }}>
-                Click the confirmation link to verify your email address
-              </li>
               <li>
-                Your account will be activated and ready to use
+                Click the confirmation link to verify your email address and proceed to login
               </li>
             </ol>
           </div>
 
-          <p style={{ 
-            color: C.onSurfaceVariant, 
-            margin: "0 0 1.5rem", 
+          <p style={{
+            color: C.onSurfaceVariant,
+            margin: "0 0 1.5rem",
             fontFamily: "Manrope, sans-serif",
             fontSize: "0.875rem"
           }}>
-            Didn't receive the email? Check your spam folder or resend by going back to signup.
+            Didn't receive the email? Check your spam folder or go back to signup to resend.
           </p>
         </div>
 
