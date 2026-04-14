@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       municipality: municipality || null,
       province: province || null,
       id_verification_key: validIdUrl || null,
-      status: 'Pending',
+      status: 'pending', // Required: must be lowercase 'pending', 'approved', or 'rejected'
       role: 'buyer', // Required: must be 'buyer' per CHECK constraint
     };
 
