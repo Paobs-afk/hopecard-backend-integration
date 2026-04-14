@@ -1,3 +1,41 @@
+// Donor Profile types
+export interface DonorProfile {
+  id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  barangay?: string;
+  municipality?: string;
+  province?: string;
+  valid_id_url?: string;
+  status: 'Pending' | 'Verified' | 'Rejected' | 'Active';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DonorSignupRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  barangay?: string;
+  municipality?: string;
+  province?: string;
+  validIdUrl?: string;
+}
+
+export interface SignupResponse {
+  success: boolean;
+  user?: {
+    id: string;
+    email: string;
+  };
+  message?: string;
+  warning?: string;
+  error?: string;
+}
+
 // Cart & Basket types
 export interface CartItem {
   id: string;
