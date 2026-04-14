@@ -98,7 +98,7 @@ function CheckEmailForm() {
                 Check your email inbox for a confirmation link from Hopecard
               </li>
               <li style={{ marginBottom: "0.5rem" }}>
-                Click the confirmation link to verify your email address and proceed to login
+                Click the confirmation link to verify your email address
               </li>
               <li>
                 Your application will be subject for review
