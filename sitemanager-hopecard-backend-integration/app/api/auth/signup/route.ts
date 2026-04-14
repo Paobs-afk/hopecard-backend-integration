@@ -90,7 +90,6 @@ export async function POST(request: NextRequest) {
       user_id: authData.user.id,
       first_name: firstName,
       last_name: lastName,
-      email: email,
       barangay: barangay || null,
       municipality: municipality || null,
       province: province || null,
