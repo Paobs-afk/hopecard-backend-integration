@@ -53,44 +53,74 @@ export async function POST(request: NextRequest) {
     const key = supabaseServiceKey || supabaseAnonKey;
     const supabase = createClient(supabaseUrl, key!);
 
-    // Create a unique filename with timestamp
-    const timestamp = Date.now();
-    const ext = file.name.split('.').pop();
-    const filename = `${userId}/${timestamp}-valid-id.${ext}`;
+    try {
+      // Create a unique filename with timestamp
+      const timestamp = Date.now();
+      const ext = file.name.split('.').pop();
+      const filename = `${userId}/${timestamp}-valid-id.${ext}`;
 
-    // Upload file to storage bucket
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+      // Upload file to storage bucket
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
 
-    const { data, error } = await supabase.storage
-      .from('donor-ids')
-      .upload(filename, buffer, {
-        contentType: file.type,
-        upsert: false,
-      });
+      console.log(`Attempting to upload file: ${filename} to bucket: donor-ids`);
 
-    if (error) {
-      console.error('Storage upload error:', error);
+      const { data, error } = await supabase.storage
+        .from('donor-ids')
+        .upload(filename, buffer, {
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (error) {
+        console.error('Storage upload error:', error);
+
+        // Check if it's a bucket not found error
+        if (error.message.includes('not found') || error.message.includes('does not exist')) {
+          return NextResponse.json(
+            {
+              success: false,
+              warning: 'Storage bucket not configured. Please create "donor-ids" bucket in Supabase Storage.',
+              error: error.message,
+            },
+            { status: 503 }
+          );
+        }
+
+        return NextResponse.json(
+          { error: `Failed to upload file: ${error.message}` },
+          { status: 400 }
+        );
+      }
+
+      // Get the public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('donor-ids').getPublicUrl(filename);
+
+      console.log(`File uploaded successfully: ${publicUrl}`);
+
       return NextResponse.json(
-        { error: `Failed to upload file: ${error.message}` },
-        { status: 400 }
+        {
+          success: true,
+          url: publicUrl,
+          filename: data.path,
+          message: 'ID uploaded successfully',
+        },
+        { status: 200 }
+      );
+    } catch (storageError) {
+      const message = storageError instanceof Error ? storageError.message : 'Storage error';
+      console.error('Storage operation error:', message);
+      return NextResponse.json(
+        {
+          success: false,
+          warning: 'Could not upload file to storage',
+          error: message,
+        },
+        { status: 503 }
       );
     }
-
-    // Get the public URL
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from('donor-ids').getPublicUrl(filename);
-
-    return NextResponse.json(
-      {
-        success: true,
-        url: publicUrl,
-        filename: data.path,
-        message: 'ID uploaded successfully',
-      },
-      { status: 200 }
-    );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'An error occurred';
     console.error('Upload error:', message);

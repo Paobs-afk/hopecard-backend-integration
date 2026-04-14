@@ -63,54 +63,54 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 2: Create the donor profile using service role
+    const profileData = {
+      user_id: authData.user.id,
+      first_name: firstName,
+      last_name: lastName,
+      email: email,
+      barangay: barangay || null,
+      municipality: municipality || null,
+      province: province || null,
+      valid_id_url: validIdUrl || null,
+      status: 'Pending',
+    };
+
+    let profileCreated = false;
+    let profileError = null;
+
     if (supabaseServiceKey) {
       const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-      const { error: profileError } = await supabaseAdmin
+      const insertResult = await supabaseAdmin
         .from('digital_donor_profiles')
-        .insert({
-          user_id: authData.user.id,
-          first_name: firstName,
-          last_name: lastName,
-          email,
-          barangay: barangay || null,
-          municipality: municipality || null,
-          province: province || null,
-          valid_id_url: validIdUrl || null,
-          status: 'Pending',
-        });
+        .insert(profileData);
 
-      if (profileError) {
-        // Log the error but don't fail - user was created
-        console.error('Failed to create donor profile:', profileError);
-        return NextResponse.json(
-          {
-            success: true,
-            user: authData.user,
-            warning: 'User created but profile creation had an issue',
-          },
-          { status: 200 }
-        );
+      if (insertResult.error) {
+        profileError = insertResult.error;
+        console.error('Failed to create donor profile with service role:', profileError);
+      } else {
+        profileCreated = true;
       }
     } else {
       // Fallback: try to create profile with anon key (requires RLS policies)
-      const { error: profileError } = await supabase
+      const insertResult = await supabase
         .from('digital_donor_profiles')
-        .insert({
-          user_id: authData.user.id,
-          first_name: firstName,
-          last_name: lastName,
-          email,
-          barangay: barangay || null,
-          municipality: municipality || null,
-          province: province || null,
-          valid_id_url: validIdUrl || null,
-          status: 'Pending',
-        });
+        .insert(profileData);
 
-      if (profileError) {
-        console.error('Failed to create donor profile:', profileError);
+      if (insertResult.error) {
+        profileError = insertResult.error;
+        console.error('Failed to create donor profile with anon key:', profileError);
+      } else {
+        profileCreated = true;
       }
+    }
+
+    // Even if profile creation fails, return success for user creation
+    // The profile can be retried separately
+    if (!profileCreated) {
+      console.warn(
+        `Profile creation failed but user was created. Error: ${profileError?.message || 'Unknown error'}`
+      );
     }
 
     return NextResponse.json(

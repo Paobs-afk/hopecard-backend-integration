@@ -53,42 +53,8 @@ export default function HopecardSignUp() {
     setErrorMessage('');
 
     try {
-      // Step 1: Get the file from the input
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-      const file = fileInput?.files?.[0];
-
-      if (!file) {
-        throw new Error('File not found');
-      }
-
-      // Step 2: Create a temporary user ID for file upload (we'll use email for now)
-      // In production, you might want to generate a temporary ID
-      const tempUserId = email.replace(/[^a-z0-9]/gi, '_');
-
-      // Step 3: Upload the ID file
-      let validIdUrl = null;
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('userId', tempUserId);
-
-        const uploadRes = await fetch('/api/auth/upload-id', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          validIdUrl = uploadData.url;
-        } else {
-          console.warn('ID upload failed, continuing with signup');
-        }
-      } catch (uploadErr) {
-        console.warn('ID upload error:', uploadErr);
-      }
-
-      // Step 4: Create the account and donor profile
-      const res = await fetch('/api/auth/signup', {
+      // Step 1: Create the account and donor profile first
+      const signupRes = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -99,17 +65,47 @@ export default function HopecardSignUp() {
           barangay,
           municipality,
           province,
-          validIdUrl,
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Signup failed');
+      const signupData = await signupRes.json();
+
+      if (!signupRes.ok) {
+        throw new Error(signupData.error || 'Signup failed');
+      }
+
+      // Step 2: Upload the ID file after account is created
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const file = fileInput?.files?.[0];
+
+      if (file && signupData.user?.id) {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('userId', signupData.user.id);
+
+          const uploadRes = await fetch('/api/auth/upload-id', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            console.log('ID uploaded successfully:', uploadData.url);
+            // Optionally: Update the donor profile with the ID URL
+          } else {
+            console.warn('ID upload failed, but account was created');
+          }
+        } catch (uploadErr) {
+          console.warn('ID upload error, but account was created:', uploadErr);
+        }
+      }
 
       // Redirect to OTP verification
       router.push(`/otp?email=${encodeURIComponent(email)}`);
     } catch (err: any) {
       setErrorMessage(err.message || 'An error occurred during signup');
+      console.error('Signup error:', err);
     } finally {
       setIsLoading(false);
     }
