@@ -39,12 +39,12 @@ export async function POST(request: NextRequest) {
     // Get the origin from the request
     const origin = request.headers.get('origin') || 'http://localhost:3000';
 
-    // Step 1: Create the auth user
+    // Step 1: Create the auth user (without automatic email confirmation)
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${origin}/auth/callback`,
+        emailRedirectTo: undefined, // Disable auto email confirmation
       },
     });
 
@@ -60,6 +60,29 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to create user account' },
         { status: 400 }
       );
+    }
+
+    // Step 1b: Generate and send OTP code instead of email confirmation
+    try {
+      // Use the full URL for the OTP generation call
+      const otpUrl = origin.startsWith('http')
+        ? `${origin}/api/auth/generate-otp`
+        : `https://${origin}/api/auth/generate-otp`;
+
+      const otpResponse = await fetch(otpUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!otpResponse.ok) {
+        const otpError = await otpResponse.text();
+        console.warn('Failed to generate OTP:', otpError);
+        // Continue - user was created successfully even if OTP email fails
+      }
+    } catch (otpError) {
+      console.warn('OTP generation error, but user was created:', otpError);
+      // Continue - user was created successfully even if OTP email fails
     }
 
     // Step 2: Create the donor profile using service role
