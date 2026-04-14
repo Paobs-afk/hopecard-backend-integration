@@ -101,13 +101,8 @@ export default function HopecardSignUp() {
         }
       }
 
-      // Store email in sessionStorage (client-side only) for OTP page
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('pendingVerificationEmail', email);
-      }
-
-      // Redirect to OTP verification (no email in URL)
-      router.push('/otp');
+      // Redirect to confirmation message page
+      router.push(`/check-email?email=${encodeURIComponent(email)}`);
     } catch (err: any) {
       setErrorMessage(err.message || 'An error occurred during signup');
       console.error('Signup error:', err);
