@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=auth', requestUrl.origin));
     }
 
-    // Successful authentication - redirect to home
-    return NextResponse.redirect(new URL('/home', requestUrl.origin));
+    // Successful email confirmation - redirect to login
+    return NextResponse.redirect(new URL('/login', requestUrl.origin));
   }
 
   // No code provided - redirect to login

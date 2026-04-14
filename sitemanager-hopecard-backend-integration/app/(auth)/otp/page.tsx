@@ -57,8 +57,25 @@ const OTP_LENGTH = 6;
 function OTPForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get('email') || '';
-  
+
+  // Get email from sessionStorage (set during signup)
+  const [email, setEmail] = React.useState('');
+  const [emailLoaded, setEmailLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    // Retrieve email from sessionStorage on mount
+    if (typeof window !== 'undefined') {
+      const storedEmail = sessionStorage.getItem('pendingVerificationEmail');
+      if (storedEmail) {
+        setEmail(storedEmail);
+      } else {
+        // Fallback: if no sessionStorage email, redirect back to signup
+        router.push('/signup');
+      }
+    }
+    setEmailLoaded(true);
+  }, [router]);
+
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -88,7 +105,7 @@ function OTPForm() {
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const fullCode = digits.join('');
     if (fullCode.length < 6) {
       setErrorMessage('Please enter the full 6-digit code');
@@ -106,6 +123,11 @@ function OTPForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Invalid OTP');
+
+      // Clear sessionStorage after successful verification
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('pendingVerificationEmail');
+      }
 
       // Redirect to login after successful verification
       router.push('/login');
@@ -142,6 +164,25 @@ function OTPForm() {
       setErrorMessage('Failed to resend code');
     }
   };
+
+  // Show loading while retrieving email from sessionStorage
+  if (!emailLoaded) {
+    return (
+      <AuthShell>
+        <div style={{
+          padding: "clamp(2rem, 5vw, 5rem)",
+          background: C.surfaceContainerLowest,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh"
+        }}>
+          <p style={{ color: C.onSurfaceVariant, fontFamily: "Manrope, sans-serif" }}>Loading...</p>
+        </div>
+      </AuthShell>
+    );
+  }
 
   // Mask email for display
   const maskedEmail = email ? email.replace(/(.{2})(.*)(@.*)/, '$1***$3') : 'your email';
