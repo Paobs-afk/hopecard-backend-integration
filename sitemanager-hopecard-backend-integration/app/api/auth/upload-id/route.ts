@@ -100,11 +100,12 @@ export async function POST(request: NextRequest) {
 
       console.log(`File uploaded successfully: ${publicUrl}`);
 
+      // Return the storage path/key (not the public URL)
       return NextResponse.json(
         {
           success: true,
-          url: publicUrl,
-          filename: data.path,
+          path: data.path,  // Storage bucket path/key (e.g., "userId/timestamp-valid-id.jpg")
+          url: publicUrl,   // Public URL (for reference)
           message: 'ID uploaded successfully',
         },
         { status: 200 }
