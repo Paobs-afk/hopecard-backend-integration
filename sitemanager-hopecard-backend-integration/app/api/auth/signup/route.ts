@@ -64,14 +64,15 @@ export async function POST(request: NextRequest) {
 
     // Step 2: Create the donor profile using service role
     const profileData = {
-      user_id: authData.user.id,
+      auth_user_id: authData.user.id,
       first_name: firstName,
       last_name: lastName,
       barangay: barangay || null,
       municipality: municipality || null,
       province: province || null,
-      valid_id_url: validIdUrl || null,
+      id_verification_key: validIdUrl || null,
       status: 'Pending',
+      role: 'donor', // Default role for new signups
     };
 
     let profileCreated = false;

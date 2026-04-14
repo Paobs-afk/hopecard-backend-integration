@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const { data: profileData, error: profileError } = await supabaseAdmin
       .from('digital_donor_profiles')
       .select('status')
-      .eq('user_id', data.user?.id)
+      .eq('auth_user_id', data.user?.id)
       .single();
 
     if (profileError) {
