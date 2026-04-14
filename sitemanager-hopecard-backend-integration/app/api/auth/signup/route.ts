@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       province: province || null,
       id_verification_key: validIdUrl || null,
       status: 'Pending',
-      role: 'donor', // Default role for new signups
+      role: 'buyer', // Required: must be 'buyer' per CHECK constraint
     };
 
     let profileCreated = false;
