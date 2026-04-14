@@ -41,11 +41,18 @@ function LoginForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        // Handle pending approval case
+        // Handle approval status case
         if (data.reason === 'pending_approval') {
-          setErrorMessage(
-            'Your account is still under review. You will receive an email once your account is approved. Thank you for your patience!'
-          );
+          if (data.status === 'rejected') {
+            setErrorMessage(
+              'Unfortunately, your account application has been rejected. If you believe this is an error, please contact support for assistance.'
+            );
+          } else {
+            // status === 'pending'
+            setErrorMessage(
+              'Your account is still under review. You will receive an email once your account is approved. Thank you for your patience!'
+            );
+          }
           return;
         }
         throw new Error(data.error || 'Login failed');
